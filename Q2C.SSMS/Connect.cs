@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Windows.Forms;
+using EnvDTE80;
 using Extensibility;
 using EnvDTE;
+using Microsoft.SqlServer.Management.UI.VSIntegration;
 using Microsoft.VisualStudio.CommandBars;
 
 namespace Q2C.SSMS
@@ -130,11 +132,24 @@ namespace Q2C.SSMS
             }
         }
 
-        public void Exec(string cmdName, vsCommandExecOption executeOption, ref object variantIn,
-           ref object variantOut, ref bool handled)
+        public void Exec(string cmdName, vsCommandExecOption executeOption, ref object variantIn, ref object variantOut, ref bool handled)
         {
             if (cmdName == _mAddIn.ProgID + "." + m_NAME_COMMAND1)
             {
+                // get current connection information
+                var connInfo = ServiceCache.ScriptFactory.CurrentlyActiveWndConnectionInfo;
+
+                // display current connection info in document
+                var document = ((DTE2)ServiceCache.ExtensibilityModel).ActiveDocument;
+                if (document != null)
+                {
+                    //replace currently selected text
+                    var selection = (TextSelection)document.Selection;
+                    selection.Insert(selection.Text + Environment.NewLine + "--" + connInfo.UIConnectionInfo.ServerName, 
+                        (Int32)vsInsertFlags.vsInsertFlagsContainNewText);
+                }
+
+                handled = true;
                 MessageBox.Show("MyCommand1 executed");
             }
             else if (cmdName == _mAddIn.ProgID + "." + m_NAME_COMMAND2)
