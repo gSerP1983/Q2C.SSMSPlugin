@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Q2C.SSMS</name>
+    </assembly>
+    <members>
+        <member name="T:Q2C.SSMS.Connect">
+            <summary>
+            Enter point for plugin
+            </summary>
+        </member>
+    </members>
+</doc>
