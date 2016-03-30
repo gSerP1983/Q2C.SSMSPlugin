@@ -9,5 +9,51 @@
             Enter point for plugin
             </summary>
         </member>
+        <member name="M:Q2C.SSMS.Connect.OnConnection(System.Object,Extensibility.ext_ConnectMode,System.Object,System.Array@)">
+            <summary>Implements the OnConnection method of the IDTExtensibility2 interface. Receives notification that the Add-in is being loaded.</summary>
+            <param name="application">Root object of the host application.</param>
+            <param name="connectMode">Describes how the Add-in is being loaded.</param>
+            <param name="addInInst">Object representing this Add-in.</param>
+            <param name="custom"></param>
+            <seealso class='IDTExtensibility2' />
+        </member>
+        <member name="M:Q2C.SSMS.Connect.OnDisconnection(Extensibility.ext_DisconnectMode,System.Array@)">
+            <summary>Implements the OnDisconnection method of the IDTExtensibility2 interface. Receives notification that the Add-in is being unloaded.</summary>
+            <param name='disconnectMode'>Describes how the Add-in is being unloaded.</param>
+            <param name='custom'>Array of parameters that are host application specific.</param>
+            <seealso class='IDTExtensibility2' />
+        </member>
+        <member name="M:Q2C.SSMS.Connect.OnAddInsUpdate(System.Array@)">
+            <summary>Implements the OnAddInsUpdate method of the IDTExtensibility2 interface. Receives notification when the collection of Add-ins has changed.</summary>
+            <param name='custom'>Array of parameters that are host application specific.</param>
+            <seealso class='IDTExtensibility2' />
+        </member>
+        <member name="M:Q2C.SSMS.Connect.OnStartupComplete(System.Array@)">
+            <summary>Implements the OnStartupComplete method of the IDTExtensibility2 interface. Receives notification that the host application has completed loading.</summary>
+            <param name='custom'>Array of parameters that are host application specific.</param>
+            <seealso class='IDTExtensibility2' />
+        </member>
+        <member name="M:Q2C.SSMS.Connect.OnBeginShutdown(System.Array@)">
+            <summary>Implements the OnBeginShutdown method of the IDTExtensibility2 interface. Receives notification that the host application is being unloaded.</summary>
+            <param name='custom'>Array of parameters that are host application specific.</param>
+            <seealso class='IDTExtensibility2' />
+        </member>
+        <member name="M:Q2C.SSMS.Connect.QueryStatus(System.String,EnvDTE.vsCommandStatusTextWanted,EnvDTE.vsCommandStatus@,System.Object@)">
+            <summary>Implements the QueryStatus method of the IDTCommandTarget interface. This is called when the command's availability is updated</summary>
+            <param name='commandName'>The name of the command to determine state for.</param>
+            <param name='neededText'>Text that is needed for the command.</param>
+            <param name='status'>The state of the command in the user interface.</param>
+            <param name='commandText'>Text requested by the neededText parameter.</param>
+            <seealso class='Exec' />
+        </member>
+        <member name="M:Q2C.SSMS.Connect.Exec(System.String,EnvDTE.vsCommandExecOption,System.Object@,System.Object@,System.Boolean@)">
+            <summary>Implements the Exec method of the IDTCommandTarget interface. This is called when the command is invoked.</summary>
+            <param name='commandName'>The name of the command to execute.</param>
+            <param name='executeOption'>Describes how the command should be run.</param>
+            <param name='variantIn'>Parameters passed from the caller to the command handler.</param>
+            <param name='variantOut'>Parameters passed from the command handler to the caller.</param>
+            <param name='handled'>Informs the caller if the command was handled or not.</param>
+            <seealso class='Exec' />
+        </member>
     </members>
 </doc>

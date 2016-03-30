@@ -1,161 +1,185 @@
 ﻿using System;
+using System.Data.SqlClient;
+using System.Linq;
 using System.Windows.Forms;
 using EnvDTE80;
 using Extensibility;
 using EnvDTE;
+using Microsoft.SqlServer.Management.Smo.RegSvrEnum;
 using Microsoft.SqlServer.Management.UI.VSIntegration;
 using Microsoft.VisualStudio.CommandBars;
+using Q2C.Core;
+using System.Runtime.InteropServices;
+
 
 namespace Q2C.SSMS
 {
     /// <summary>
     /// Enter point for plugin
     /// </summary>
+    [Guid("A2305F50-41F2-4F6E-9EB5-0F594613CB8C")]
     public class Connect : IDTExtensibility2, IDTCommandTarget
     {
-        private const string m_NAME_COMMAND1 = "MyCommand1";
-        private const string m_NAME_COMMAND2 = "MyCommand2";
+        private const string SqlFileEditorContextMenuId = "SQL Files Editor Context";
+        private const string Query2CommandName = "Execute Query To Command...";
 
-        private DTE _mDte;
-        private AddIn _mAddIn;
+        private DTE _dte;
+        private AddIn _addIn;
 
-        private CommandBarPopup _mCommandBarPopup;
-
+        /// <summary>Implements the OnConnection method of the IDTExtensibility2 interface. Receives notification that the Add-in is being loaded.</summary>
+        /// <param name="application">Root object of the host application.</param>
+        /// <param name="connectMode">Describes how the Add-in is being loaded.</param>
+        /// <param name="addInInst">Object representing this Add-in.</param>
+        /// <param name="custom"></param>
+        /// <seealso class='IDTExtensibility2' />
         public void OnConnection(object application, ext_ConnectMode connectMode,
            object addInInst, ref Array custom)
         {
             try
             {
-                _mDte = (DTE)application;
-                _mAddIn = (AddIn)addInInst;
+                _dte = (DTE)application;
+                _addIn = (AddIn)addInInst;
 
-                switch (connectMode)
-                {
-                    case ext_ConnectMode.ext_cm_UISetup:
+                // For SSMS this need to be set to ext_ConnectMode.ext_cm_Startup rather than ext_ConnectMode.ext_cm_UISetup
+                if (connectMode == ext_ConnectMode.ext_cm_Startup)
+                {                    
+                    var contextMenu = ((CommandBars)_dte.CommandBars)[SqlFileEditorContextMenuId];
+                    var query2CommandMenu = (CommandBarPopup) contextMenu.Controls.Add(MsoControlType.msoControlPopup,
+                        Type.Missing, Type.Missing, Type.Missing, Type.Missing);
+                    query2CommandMenu.Caption = Query2CommandName;
 
-                        // Create commands in the UI Setup phase. This phase is called only once when the add-in is deployed.
-                        CreateCommands();
-                        break;
-
-                    case ext_ConnectMode.ext_cm_AfterStartup:
-
-                        InitializeAddIn();
-                        break;
-
-                    case ext_ConnectMode.ext_cm_Startup:
-
-                        // Do nothing yet, wait until the IDE is fully initialized (OnStartupComplete will be called)
-                        break;
+                    var contextUiGuids = new object[] { };
+                    foreach (var cmd in Factory.GetCommands())
+                    {
+                        var command =_dte.Commands.Cast<Command>()
+                            .FirstOrDefault(x => x.Name == _addIn.ProgID + "." + cmd.Id);
+                        if (command == null)
+                        {
+                            command = _dte.Commands.AddNamedCommand(_addIn, cmd.Id, cmd.Name, cmd.Description, true, 0,
+                                ref contextUiGuids, (int) vsCommandStatus.vsCommandStatusSupported);
+                        }
+                        command.AddControl(query2CommandMenu.CommandBar, query2CommandMenu.Controls.Count + 1);
+                    }
                 }
             }
-            catch (Exception ex)
+            catch (ArgumentException ex)
             {
                 MessageBox.Show(ex.ToString(), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
-        public void OnStartupComplete(ref Array custom)
-        {
-            InitializeAddIn();
-        }
-
-        private void CreateCommands()
-        {
-            var contextUiGuids = new object[] { };
-
-            _mDte.Commands.AddNamedCommand(_mAddIn, m_NAME_COMMAND1, "MyCommand 1", "MyCommand 1", true, 59,
-               ref contextUiGuids, (int)vsCommandStatus.vsCommandStatusSupported);
-
-            _mDte.Commands.AddNamedCommand(_mAddIn, m_NAME_COMMAND2, "MyCommand 2", "MyCommand 2", true, 59,
-               ref contextUiGuids, (int)vsCommandStatus.vsCommandStatusSupported);
-        }
-
-        private void InitializeAddIn()
-        {
-            // Retrieve commands created in the ext_cm_UISetup phase of the OnConnection method
-            var myCommand1 = _mDte.Commands.Item(_mAddIn.ProgID + "." + m_NAME_COMMAND1);
-            var myCommand2 = _mDte.Commands.Item(_mAddIn.ProgID + "." + m_NAME_COMMAND2);
-
-            // Retrieve the context menu of code windows
-            var commandBars = (CommandBars)_mDte.CommandBars;
-            var codeWindowCommandBar = commandBars["SQL Files Editor Context"];
-
-            // Add a popup command bar
-            var myCommandBarControl = codeWindowCommandBar.Controls.Add(MsoControlType.msoControlPopup,
-                Type.Missing, Type.Missing, Type.Missing, Type.Missing);
-
-            _mCommandBarPopup = (CommandBarPopup)myCommandBarControl;
-
-            // Change its caption
-            _mCommandBarPopup.Caption = "My popup";
-
-            // Add controls to the popup command bar
-            myCommand1.AddControl(_mCommandBarPopup.CommandBar, _mCommandBarPopup.Controls.Count + 1);
-
-            myCommand2.AddControl(_mCommandBarPopup.CommandBar, _mCommandBarPopup.Controls.Count + 1);
-        }
-
-        public void OnBeginShutdown(ref Array custom)
-        {
-        }
-
+        /// <summary>Implements the OnDisconnection method of the IDTExtensibility2 interface. Receives notification that the Add-in is being unloaded.</summary>
+        /// <param name='disconnectMode'>Describes how the Add-in is being unloaded.</param>
+        /// <param name='custom'>Array of parameters that are host application specific.</param>
+        /// <seealso class='IDTExtensibility2' />
         public void OnDisconnection(ext_DisconnectMode disconnectMode, ref Array custom)
         {
             try
             {
-                if (_mCommandBarPopup != null)
+                foreach (var cmd in Factory.GetCommands())
                 {
-                    // may be disposed
-                    _mCommandBarPopup.Delete(true);
+                    var command = _dte.Commands.Cast<Command>()
+                        .FirstOrDefault(x => x.Name == _addIn.ProgID + "." + cmd.Id);
+                    if (command != null)
+                        command.Delete();
                 }
             }
-            catch (Exception ex)
+            catch (ArgumentException ex)
             {
                 MessageBox.Show(ex.ToString(), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
+        /// <summary>Implements the OnAddInsUpdate method of the IDTExtensibility2 interface. Receives notification when the collection of Add-ins has changed.</summary>
+        /// <param name='custom'>Array of parameters that are host application specific.</param>
+        /// <seealso class='IDTExtensibility2' />
         public void OnAddInsUpdate(ref Array custom)
         {
         }
 
-        public void QueryStatus(string cmdName, vsCommandStatusTextWanted neededText,
-           ref vsCommandStatus statusOption, ref object commandText)
+        /// <summary>Implements the OnStartupComplete method of the IDTExtensibility2 interface. Receives notification that the host application has completed loading.</summary>
+        /// <param name='custom'>Array of parameters that are host application specific.</param>
+        /// <seealso class='IDTExtensibility2' />
+        public void OnStartupComplete(ref Array custom)
         {
-            if (cmdName == _mAddIn.ProgID + "." + m_NAME_COMMAND1)
-            {
-                statusOption = vsCommandStatus.vsCommandStatusSupported | vsCommandStatus.vsCommandStatusEnabled;
-            }
-            else if (cmdName == _mAddIn.ProgID + "." + m_NAME_COMMAND2)
-            {
-                statusOption = vsCommandStatus.vsCommandStatusSupported | vsCommandStatus.vsCommandStatusEnabled;
-            }
         }
 
-        public void Exec(string cmdName, vsCommandExecOption executeOption, ref object variantIn, ref object variantOut, ref bool handled)
+        /// <summary>Implements the OnBeginShutdown method of the IDTExtensibility2 interface. Receives notification that the host application is being unloaded.</summary>
+        /// <param name='custom'>Array of parameters that are host application specific.</param>
+        /// <seealso class='IDTExtensibility2' />
+        public void OnBeginShutdown(ref Array custom)
         {
-            if (cmdName == _mAddIn.ProgID + "." + m_NAME_COMMAND1)
-            {
-                // get current connection information
-                var connInfo = ServiceCache.ScriptFactory.CurrentlyActiveWndConnectionInfo;
+        }
 
-                // display current connection info in document
+        /// <summary>Implements the QueryStatus method of the IDTCommandTarget interface. This is called when the command's availability is updated</summary>
+        /// <param name='commandName'>The name of the command to determine state for.</param>
+        /// <param name='neededText'>Text that is needed for the command.</param>
+        /// <param name='status'>The state of the command in the user interface.</param>
+        /// <param name='commandText'>Text requested by the neededText parameter.</param>
+        /// <seealso class='Exec' />
+        public void QueryStatus(string commandName, vsCommandStatusTextWanted neededText,
+           ref vsCommandStatus status, ref object commandText)
+        {
+            if (Factory.GetCommands().Any(cmd => commandName == _addIn.ProgID + "." + cmd.Id))
+                status = vsCommandStatus.vsCommandStatusSupported | vsCommandStatus.vsCommandStatusEnabled;
+        }
+
+        /// <summary>Implements the Exec method of the IDTCommandTarget interface. This is called when the command is invoked.</summary>
+        /// <param name='commandName'>The name of the command to execute.</param>
+        /// <param name='executeOption'>Describes how the command should be run.</param>
+        /// <param name='variantIn'>Parameters passed from the caller to the command handler.</param>
+        /// <param name='variantOut'>Parameters passed from the command handler to the caller.</param>
+        /// <param name='handled'>Informs the caller if the command was handled or not.</param>
+        /// <seealso class='Exec' />
+        public void Exec(string commandName, vsCommandExecOption executeOption, ref object variantIn, ref object variantOut, ref bool handled)
+        {
+            foreach (var cmd in Factory.GetCommands())
+            {
+                if (commandName != _addIn.ProgID + "." + cmd.Id) 
+                    continue;
+
                 var document = ((DTE2)ServiceCache.ExtensibilityModel).ActiveDocument;
                 if (document != null)
                 {
-                    //replace currently selected text
-                    var selection = (TextSelection)document.Selection;
-                    selection.Insert(selection.Text + Environment.NewLine + "--" + connInfo.UIConnectionInfo.ServerName, 
-                        (Int32)vsInsertFlags.vsInsertFlagsContainNewText);
+                    var selection = (TextSelection) document.Selection;
+                    var query = selection.Text;
+                    if (string.IsNullOrWhiteSpace(query))
+                    {
+                        selection.SelectAll();
+                        query = selection.Text;
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(query))
+                    {
+                        var connInfo = ServiceCache.ScriptFactory.CurrentlyActiveWndConnectionInfo;
+                        var newText = cmd.Execute(GetConnectionString(connInfo.UIConnectionInfo), query);
+                        selection.Insert(
+                            query + Environment.NewLine + GetConnectionString(connInfo.UIConnectionInfo),
+                            (Int32) vsInsertFlags.vsInsertFlagsContainNewText);
+                    }
                 }
 
                 handled = true;
-                MessageBox.Show("MyCommand1 executed");
+                return;
             }
-            else if (cmdName == _mAddIn.ProgID + "." + m_NAME_COMMAND2)
+        }
+
+        private static string GetConnectionString(UIConnectionInfo connection)
+        {
+            var integratedSecurity = string.IsNullOrEmpty(connection.Password);
+            var builder = new SqlConnectionStringBuilder
             {
-                MessageBox.Show("MyCommand2 executed");
+                DataSource = connection.ServerName,
+                IntegratedSecurity = integratedSecurity,
+                InitialCatalog = connection.AdvancedOptions["DATABASE"] ?? "master",
+                ApplicationName = "Q2C"
+            };
+            if (!integratedSecurity)
+            {
+                builder.Password = connection.Password;
+                builder.UserID = connection.UserName;
             }
+            return builder.ConnectionString;
         }
     }
 }

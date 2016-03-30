@@ -141,6 +141,12 @@
     <Content Include="_Lib\SqlPackageBase.dll" />
     <Content Include="_Lib\SqlWorkbench.Interfaces.dll" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Q2C.Core\Q2C.Core.csproj">
+      <Project>{6f3ca73c-e77d-4829-a02c-68f724555e6f}</Project>
+      <Name>Q2C.Core</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSHARP.Targets" />
   <PropertyGroup>
     <PreBuildEvent>
