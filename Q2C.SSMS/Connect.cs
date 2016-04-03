@@ -154,7 +154,8 @@ namespace Q2C.SSMS
                         var connInfo = ServiceCache.ScriptFactory.CurrentlyActiveWndConnectionInfo;
                         var newText = cmd.Execute(GetConnectionString(connInfo.UIConnectionInfo), query);
                         selection.Insert(
-                            query + Environment.NewLine + GetConnectionString(connInfo.UIConnectionInfo),
+                            "/*" + query + "*/" +
+                            Environment.NewLine + newText,
                             (Int32) vsInsertFlags.vsInsertFlagsContainNewText);
                     }
                 }

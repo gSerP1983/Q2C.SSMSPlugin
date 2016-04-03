@@ -39,12 +39,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AppEnvironment.cs" />
+    <Compile Include="Commands\CommandBase.cs" />
     <Compile Include="Commands\CreateTempTableCommand.cs" />
     <Compile Include="Commands\InsertInTempTableCommand.cs" />
     <Compile Include="Commands\UpdateCommand.cs" />
     <Compile Include="Commands\ICommand.cs" />
     <Compile Include="Commands\InsertCommand.cs" />
+    <Compile Include="DbHelper.cs" />
     <Compile Include="Factory.cs" />
+    <Compile Include="Log.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TypeExt.cs" />
   </ItemGroup>
