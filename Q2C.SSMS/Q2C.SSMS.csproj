@@ -129,10 +129,6 @@
     </COMReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="C:\Users\Serp\Documents\Visual Studio 2012\Addins\Q2C.SSMS - For Testing.AddIn">
-      <Link>Q2C.SSMS - For Testing.AddIn</Link>
-      <SubType>Designer</SubType>
-    </Content>
     <Content Include="Q2C.SSMS.AddIn">
       <SubType>Designer</SubType>
     </Content>
