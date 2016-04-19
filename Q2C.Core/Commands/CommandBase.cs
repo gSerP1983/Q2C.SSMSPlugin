@@ -14,7 +14,9 @@ namespace Q2C.Core.Commands
             return ds.Tables.Cast<DataTable>()
                 .Select(GetDataTableScript)
                 .Aggregate((s, result) => result + s);
-        }
+        }   
+     
+        public bool IsRequireQuery { get { return true; } }
 
         protected abstract string GetDataTableScript(DataTable dt);
     }

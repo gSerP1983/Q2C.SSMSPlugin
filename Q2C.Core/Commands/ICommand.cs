@@ -6,5 +6,6 @@
         string Id { get; }
         string Name { get; }
         string Description { get; }
+        bool IsRequireQuery { get; }
     }
 }

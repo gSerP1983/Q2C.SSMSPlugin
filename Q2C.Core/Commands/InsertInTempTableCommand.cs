@@ -21,5 +21,11 @@
         {
             get { return "Query To Insert In Temp Table..."; }
         }
+
+        public bool IsRequireQuery
+        {
+            get { return true; }
+        }
+
     }
 }

@@ -24,6 +24,11 @@ namespace Q2C.Core.Commands
 
         protected override string GetDataTableScript(DataTable dt)
         {
+            var columns = dt.Columns.Cast<DataColumn>().Where(x => !x.ReadOnly).ToArray();
+            var roColumns = dt.Columns.Cast<DataColumn>().Where(x => x.ReadOnly && !dt.PrimaryKey.Contains(x)).ToArray();
+            if (!columns.Any() && !roColumns.Any())
+                return string.Empty;
+
             var result = new StringBuilder();
             var count = 0;
 
@@ -35,18 +40,8 @@ namespace Q2C.Core.Commands
                 result.AppendLine("SET ");
 
                 // set
-                var columns = dt.Columns.Cast<DataColumn>().Where(x => !x.ReadOnly).ToArray();
-                foreach (var col in columns)
-                {
-                    if (dt.PrimaryKey.Any(x => x.ColumnName == col.ColumnName))
-                        continue;
-
-                    var val = col.ColumnName + " = " + DbHelper.GetScriptValue(dr[col], col.DataType);
-                    if (!Equals(col, columns.FirstOrDefault()))
-                        val = "," + val;
-
-                    result.AppendLine(val);
-                }
+                GetSetter(dr, columns, result);
+                GetSetter(dr, roColumns, result, columns.Any());
 
                 // where
                 if (dt.PrimaryKey.Length == 0)
@@ -71,6 +66,30 @@ namespace Q2C.Core.Commands
             }
 
             return result + Environment.NewLine;
+        }
+
+        private static void GetSetter(DataRow dr, DataColumn[] columns, StringBuilder result, bool addComma = false)
+        {
+            foreach (var col in columns)
+            {
+                if (dr.Table.PrimaryKey.Any(x => x.ColumnName == col.ColumnName))
+                    continue;
+
+                var val = col.ColumnName + " = " + DbHelper.GetScriptValue(dr[col], col.DataType);
+                if (Equals(col, columns.FirstOrDefault()))
+                {
+                    if (addComma)
+                        val = "," + val;
+                }
+                else
+                    val = "," + val;
+
+
+                if (col.ReadOnly)
+                    val = "--ReadOnly " + val;
+
+                result.AppendLine(val);
+            }
         }
     }
 }

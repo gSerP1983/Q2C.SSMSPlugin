@@ -24,8 +24,13 @@ namespace Q2C.Core.Commands
 
         protected override string GetDataTableScript(DataTable dt)
         {
-            var result = new StringBuilder();
+            var columns = dt.Columns.Cast<DataColumn>().Where(x => !x.ReadOnly).ToArray();
+            columns = dt.PrimaryKey.Union(columns).ToArray();
+            var roColumns = dt.Columns.Cast<DataColumn>().Where(x => x.ReadOnly && !dt.PrimaryKey.Contains(x)).ToArray();
+            if (!columns.Any() && !roColumns.Any())
+                return string.Empty;
 
+            var result = new StringBuilder();
             if (dt.PrimaryKey.Any(x => x.AutoIncrement))
             {
                 result.AppendLine("SET IDENTITY_INSERT !!!TABLE_NAME ON");
@@ -36,27 +41,17 @@ namespace Q2C.Core.Commands
             var count = 0;
             foreach (var dr in dt.Rows.Cast<DataRow>())
             {
-                var columns = dt.Columns.Cast<DataColumn>()
-                    .Where(x => !x.ReadOnly)
-                    .ToArray();
-                columns = dt.PrimaryKey.Union(columns).ToArray();
-
                 // header
                 result.AppendLine("-- " + ++count);
-                result.AppendLine("INSERT INTO !!!TABLE_NAME (" + string.Join(", ", columns.Select(x => x.ColumnName)) + ")");
+                result.AppendLine("INSERT INTO !!!TABLE_NAME (");
+                if (columns.Any()) result.AppendLine(ColumnsToSplitedString(columns.Select(x => x.ColumnName).ToArray()));
+                if (roColumns.Any()) result.AppendLine("--ReadOnly " + (columns.Any() ? "," : "") + string.Join(", ", roColumns.Select(x => x.ColumnName)));
+                result.AppendLine(")");
                 result.AppendLine("VALUES (");
 
-                // set
-                foreach (var col in columns)
-                {
-                    var val = DbHelper.GetScriptValue(dr[col], col.DataType) + "\t\t-- " + col.ColumnName;
-                    if (dt.PrimaryKey.Any(x => x.ColumnName == col.ColumnName))
-                        val += ", pk";
-                    if (!Equals(col, columns.FirstOrDefault()))
-                        val = "," + val;
-
-                    result.AppendLine(val);
-                }
+                // set 
+                GetSetter(dr, columns, result);
+                GetSetter(dr, roColumns, result, columns.Any());
 
                 result.AppendLine(")");
                 result.AppendLine("GO ");
@@ -71,6 +66,47 @@ namespace Q2C.Core.Commands
             }
 
             return result + Environment.NewLine;
+        }
+
+        private static string ColumnsToSplitedString(string[] cols)
+        {
+            var res = string.Empty;
+
+            for (var i = 0; i < cols.Length; i++)
+            {
+                if (!string.IsNullOrEmpty(res))
+                    res += ", ";
+
+                res += cols[i];                
+                if (i % 10 == 0)
+                    res += Environment.NewLine;
+            }
+
+            return res;
+        }
+
+        private static void GetSetter(DataRow dr, DataColumn[] columns, StringBuilder result, bool addComma = false)
+        {
+            foreach (var col in columns)
+            {
+                var val = DbHelper.GetScriptValue(dr[col], col.DataType) + "\t\t-- " + col.ColumnName;
+                if (dr.Table.PrimaryKey.Any(x => x.ColumnName == col.ColumnName))
+                    val += ", pk";
+
+                if (Equals(col, columns.FirstOrDefault()))
+                {
+                    if (addComma)
+                        val = "," + val;
+                }
+                else
+                    val = "," + val;
+
+
+                if (col.ReadOnly && !dr.Table.PrimaryKey.Contains(col))
+                    val = "--ReadOnly " + val;
+
+                result.AppendLine(val);
+            }
         }
     }
 }

@@ -20,6 +20,7 @@ namespace Q2C.SSMS
     [Guid("A2305F50-41F2-4F6E-9EB5-0F594613CB8C")]
     public class Connect : IDTExtensibility2, IDTCommandTarget
     {
+        private const string Ads = "https://github.com/gSerP1983";
         private const string SqlFileEditorContextMenuId = "SQL Files Editor Context";
         private const string Query2CommandName = "Execute Query To Command...";
 
@@ -154,7 +155,7 @@ namespace Q2C.SSMS
                         var connInfo = ServiceCache.ScriptFactory.CurrentlyActiveWndConnectionInfo;
                         var newText = cmd.Execute(GetConnectionString(connInfo.UIConnectionInfo), query);
                         selection.Insert(
-                            "/*" + query + "*/" +
+                            "/*" + Environment.NewLine + Ads + Environment.NewLine + query + Environment.NewLine + "*/" +
                             Environment.NewLine + newText,
                             (Int32) vsInsertFlags.vsInsertFlagsContainNewText);
                     }
