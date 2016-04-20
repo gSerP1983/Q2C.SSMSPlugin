@@ -1,5 +1,15 @@
+1)
 C:\Program Files\Microsoft SQL Server\120\Tools\Binn\ManagementStudio\SqlPackageBase.dll
 C:\Program Files\Microsoft SQL Server\120\Tools\Binn\ManagementStudio\SqlWorkbench.Interfaces.dll
 C:\Program Files\Microsoft SQL Server\120\Tools\Binn\ManagementStudio\Extensions\Application\SQLEditors.dll
 
+2)
 C:\ProgramData\Microsoft\MSEnvShared\Addins
+
+3)
+Building MSI with Wix# is quite simple. But first you need prepare your building environment: 
+Download (and extract) Wix# binaries from the Downloads section. You may but don’t have to download WiX as Wix# package already contains compatible copy of WiX.
+Create environment variable WIXSHARP_WIXDIR pointing to the WiX ‘bin’ folder
+- you can do it either manually. Normally the ‘bin’ path is “<WixSharp>\Wix_bin\bin”
+- or you can just execute install.cmd from the Wix# package
+You will need to ensure that WIXSHARP_WIXDIR was roperly creates as otherwise Wix# may not be able to find WiX compilers.

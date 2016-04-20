@@ -63,6 +63,9 @@
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="WixSharp">
+      <HintPath>.\WixSharp.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs">
@@ -71,6 +74,7 @@
     <Compile Include="Connect.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="setup.cs" />
   </ItemGroup>
   <ItemGroup>
     <COMReference Include="EnvDTE">
@@ -129,9 +133,12 @@
     </COMReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="cscs.exe" />
+    <Content Include="Microsoft.Deployment.WindowsInstaller.dll" />
     <Content Include="Q2C.SSMS.AddIn">
       <SubType>Designer</SubType>
     </Content>
+    <Content Include="WixSharp.dll" />
     <Content Include="_about.txt" />
     <Content Include="_Lib\SQLEditors.dll" />
     <Content Include="_Lib\SqlPackageBase.dll" />
@@ -142,6 +149,9 @@
       <Project>{6f3ca73c-e77d-4829-a02c-68f724555e6f}</Project>
       <Name>Q2C.Core</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="createMsi.bat" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSHARP.Targets" />
   <PropertyGroup>
