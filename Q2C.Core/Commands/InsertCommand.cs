@@ -43,6 +43,23 @@ namespace Q2C.Core.Commands
             {
                 // header
                 result.AppendLine("-- " + ++count);
+
+                if (dt.PrimaryKey.Length > 0)
+                {
+                    var whereClause = string.Empty;
+                    foreach (var col in dt.PrimaryKey)
+                    {
+                        var val = col.ColumnName + " = " + DbHelper.GetScriptValue(dr[col], col.DataType);
+                        if (!Equals(col, dt.PrimaryKey.LastOrDefault()))
+                            val += " AND ";
+
+                        whereClause += val;
+                    }
+
+                    result.AppendFormat("--IF NOT EXISTS (SELECT 1 FROM !!!TABLE_NAME WHERE {0})", whereClause);
+                    result.AppendLine();
+                }
+
                 result.AppendLine("INSERT INTO !!!TABLE_NAME (");
                 if (columns.Any()) result.AppendLine(ColumnsToSplitedString(columns.Select(x => x.ColumnName).ToArray()));
                 if (roColumns.Any()) result.AppendLine("--ReadOnly " + (columns.Any() ? "," : "") + string.Join(", ", roColumns.Select(x => x.ColumnName)));

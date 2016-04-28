@@ -24,7 +24,10 @@ namespace Q2C.Core.Commands
         protected override string GetDataTableScript(DataTable dt)
         {
             var result = new StringBuilder();
-            result.AppendFormat("CREATE TABLE #{1} ({0}   ", Environment.NewLine, dt.TableName);
+            result.AppendFormat("IF OBJECT_ID('tempdb..#{0}') IS NOT NULL DROP TABLE #{0}", dt.TableName);
+            result.AppendLine();
+            result.AppendFormat("CREATE TABLE #{0} (", dt.TableName);
+            result.AppendLine();
 
             var firstTime = true;
             foreach (DataColumn column in dt.Columns)
@@ -40,7 +43,7 @@ namespace Q2C.Core.Commands
                     Environment.NewLine // 3
                 );
             }
-            result.AppendFormat(") ON [PRIMARY]{0}GO{0}{0}", Environment.NewLine);
+            result.AppendFormat("){0}GO{0}{0}", Environment.NewLine);
 
             return result.ToString();
         }
