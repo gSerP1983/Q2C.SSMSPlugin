@@ -52,3 +52,20 @@ VALUES (
 )
 GO 
 ```
+
+####**Query To Update example:**####
+
+**Before:** ```select top 1 LINK, N_Value, F_Registr_pts from pa.ED_Meter_Readings```
+
+**Do:** Execute Query To Command... -> Query To Update...
+
+**After:**
+```
+UPDATE pa.ED_Meter_Readings
+SET 
+	N_Value = 135.000000
+	,F_Registr_pts = 1815916
+WHERE 
+	LINK = 861166
+GO 
+```
