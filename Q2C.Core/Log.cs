@@ -6,9 +6,6 @@ namespace Q2C.Core
 {
     public static class Log
     {
-        /// <summary>
-        /// Путь к лог файлу
-        /// </summary>
         private static string FilePath
         {
             get
@@ -17,11 +14,6 @@ namespace Q2C.Core
             }
         }
 
-
-        /// <summary>
-        /// Производит запись message в лог файл
-        /// </summary>
-        /// <param name="exception"></param>
         public static void Write(Exception exception)
         {
             try
