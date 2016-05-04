@@ -38,7 +38,7 @@ namespace Q2C.Core.Commands
 
                 result.AppendFormat("[{0}] {1} {2} {3}",
                     column.ColumnName, // 0
-                    GetSqlTypeAsString(column.DataType), // 1
+                    GetSqlTypeAsString(column), // 1
                     column.AllowDBNull ? "NULL" : "NOT NULL", // 2
                     Environment.NewLine // 3
                 );
@@ -51,28 +51,28 @@ namespace Q2C.Core.Commands
         /// <summary>
         /// Returns the SQL data type equivalent, as a string for use in SQL script generation methods.
         /// </summary>
-        private static string GetSqlTypeAsString(Type dataType)
+        private static string GetSqlTypeAsString(DataColumn column)
         {
-            switch (dataType.Name)
+            switch (column.DataType.Name)
             {
-                case "Boolean": return "[bit]";
-                case "Char": return "[char]";
-                case "SByte": return "[tinyint]";
-                case "Int16": return "[smallint]";
-                case "Int32": return "[int]";
-                case "Int64": return "[bigint]";
-                case "Byte": return "[tinyint]";
-                case "UInt16": return "[smallint]";
-                case "UInt32": return "[int]";
-                case "UInt64": return "[bigint]";
-                case "Single": return "[float]";
-                case "Double": return "[double]";
-                case "Decimal": return "[decimal]";
-                case "DateTime": return "[datetime]";
-                case "Guid": return "[uniqueidentifier]";
-                case "Object": return "[variant]";
-                case "String": return "[nvarchar](250)";
-                default: return "[nvarchar](MAX)";
+                case "Boolean": return "BIT";
+                case "Char": return "CHAR";
+                case "SByte": return "TINYINT";
+                case "Int16": return "SMALLINT";
+                case "Int32": return "INT";
+                case "Int64": return "BIGINT";
+                case "Byte": return "TINYINT";
+                case "UInt16": return "SMALLINT";
+                case "UInt32": return "INT";
+                case "UInt64": return "BIGINT";
+                case "Single": return "FLOAT";
+                case "Double": return "DOUBLE";
+                case "Decimal": return "DECIMAL";
+                case "DateTime": return "DATETIME";
+                case "Guid": return "UNIQUEIDENTIFIER";
+                case "Object": return "VARIANT";
+                case "String": return "NVARCHAR(250)";
+                default: return "NVARCHAR(MAX)";
             }
         }
     }
